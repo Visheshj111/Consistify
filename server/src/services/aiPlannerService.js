@@ -1,10 +1,10 @@
-import OpenAI from 'openai';
+import Groq from 'groq-sdk';
 
 // Initialize OpenAI client lazily to ensure env is loaded
 let openai = null;
 function getOpenAI() {
   if (!openai) {
-    openai = new OpenAI({
+    openai = new Groq({
       apiKey: process.env.OPENAI_API_KEY
     });
   }
@@ -113,7 +113,7 @@ No markdown, no explanations, just the JSON array.`;
     console.log('Days:', totalDays);
     
     const response = await getOpenAI().chat.completions.create({
-      model: 'gpt-4o',
+      model: 'llama-3.3-70b-versatile',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
