@@ -43,22 +43,22 @@ export default function Layout() {
   ]
 
   return (
-    <div className="min-h-screen bg-white dark:bg-calm-950 transition-colors">
+    <div className="min-h-screen bg-white dark:bg-neutral-950 transition-colors">
       {/* Header */}
-      <header className="bg-white dark:bg-calm-900 border-b border-calm-200 dark:border-calm-800 sticky top-0 z-50">
+      <header className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-calm-900 dark:bg-white flex items-center justify-center">
-              <Zap className="w-4 h-4 text-white dark:text-calm-900" />
+            <div className="w-8 h-8 rounded-lg bg-neutral-900 dark:bg-white flex items-center justify-center">
+              <Zap className="w-4 h-4 text-white dark:text-neutral-900" />
             </div>
-            <h1 className="text-lg font-bold text-calm-900 dark:text-white">Persisto</h1>
+            <h1 className="text-lg font-bold text-neutral-900 dark:text-white">Persisto</h1>
           </div>
           
           <div className="flex items-center gap-2">
             {/* Dark mode toggle */}
             <button 
               onClick={() => setDarkMode(!darkMode)}
-              className="p-2 text-calm-500 hover:text-calm-700 dark:text-calm-400 dark:hover:text-calm-200 transition-colors"
+              className="p-2 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition-colors"
               aria-label="Toggle dark mode"
             >
               {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -72,11 +72,11 @@ export default function Layout() {
                   className="w-8 h-8 rounded-full"
                 />
               )}
-              <span className="text-sm text-calm-600 dark:text-calm-300 hidden sm:inline">{user?.name}</span>
+              <span className="text-sm text-neutral-600 dark:text-neutral-300 hidden sm:inline">{user?.name}</span>
             </div>
             <button 
               onClick={handleLogout}
-              className="p-2 text-calm-400 hover:text-calm-600 dark:hover:text-calm-200 transition-colors"
+              className="p-2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors"
               aria-label="Logout"
             >
               <LogOut className="w-5 h-5" />
@@ -86,7 +86,7 @@ export default function Layout() {
       </header>
 
       {/* Navigation */}
-      <nav className="bg-white dark:bg-calm-900 border-b border-calm-200 dark:border-calm-800 overflow-x-auto">
+      <nav className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 overflow-x-auto">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex gap-1">
             {navItems.map(({ to, icon: Icon, label }) => (
@@ -96,8 +96,8 @@ export default function Layout() {
                 className={({ isActive }) =>
                   `flex items-center gap-2 px-3 py-3 text-sm font-medium transition-colors relative whitespace-nowrap ${
                     isActive 
-                      ? 'text-calm-900 dark:text-white' 
-                      : 'text-calm-500 hover:text-calm-700 dark:text-calm-400 dark:hover:text-calm-200'
+                      ? 'text-neutral-900 dark:text-white' 
+                      : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
                   }`
                 }
               >
@@ -108,7 +108,7 @@ export default function Layout() {
                     {isActive && (
                       <motion.div
                         layoutId="activeTab"
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-calm-900 dark:bg-white"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-900 dark:bg-white"
                       />
                     )}
                   </>
@@ -125,7 +125,7 @@ export default function Layout() {
       </main>
 
       {/* Footer */}
-      <footer className="py-8 text-center text-calm-400 dark:text-calm-600 text-sm">
+      <footer className="py-8 text-center text-neutral-400 dark:text-neutral-600 text-sm">
         <p>Take it one day at a time. You're doing great.</p>
       </footer>
 
@@ -143,21 +143,21 @@ export default function Layout() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-calm-900 rounded-2xl shadow-xl max-w-sm w-full p-6"
+              className="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl max-w-sm w-full p-6"
               onClick={e => e.stopPropagation()}
             >
-              <h3 className="text-lg font-semibold text-calm-900 dark:text-white mb-2">Log out?</h3>
-              <p className="text-calm-500 dark:text-calm-400 mb-6">Are you sure you want to log out?</p>
+              <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">Log out?</h3>
+              <p className="text-neutral-500 dark:text-neutral-400 mb-6">Are you sure you want to log out?</p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowLogoutConfirm(false)}
-                  className="flex-1 px-4 py-2 bg-calm-100 dark:bg-calm-800 text-calm-700 dark:text-calm-200 rounded-xl hover:bg-calm-200 dark:hover:bg-calm-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmLogout}
-                  className="flex-1 px-4 py-2 bg-calm-900 dark:bg-white text-white dark:text-calm-900 rounded-xl hover:bg-calm-800 dark:hover:bg-calm-100 transition-colors"
+                  className="flex-1 px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-colors"
                 >
                   Log out
                 </button>

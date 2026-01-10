@@ -100,42 +100,42 @@ button, a, input, textarea {
 /* Calm card styles */
 @layer components {
   .calm-card {
-    @apply bg-white rounded-2xl shadow-sm border border-calm-200 p-6;
+    @apply bg-white rounded-2xl shadow-sm border border-gray-200 p-6;
   }
   
   .dark .calm-card {
-    @apply bg-calm-900 border-calm-800;
+    @apply bg-neutral-900 border-neutral-800;
   }
   
   .calm-button {
     @apply px-6 py-3 rounded-xl font-medium transition-all duration-200 
-           focus:outline-none focus:ring-2 focus:ring-calm-400 focus:ring-offset-2;
+           focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2;
   }
   
   .calm-button-primary {
-    @apply calm-button bg-calm-900 text-white hover:bg-calm-800 shadow-md hover:shadow-lg;
+    @apply calm-button bg-neutral-900 text-white hover:bg-neutral-800 shadow-md hover:shadow-lg;
   }
   
   .dark .calm-button-primary {
-    @apply bg-white text-calm-900 hover:bg-calm-100;
+    @apply bg-white text-neutral-900 hover:bg-neutral-100;
   }
   
   .calm-button-secondary {
-    @apply calm-button bg-calm-100 text-calm-700 hover:bg-calm-200;
+    @apply calm-button bg-neutral-100 text-neutral-700 hover:bg-neutral-200;
   }
   
   .dark .calm-button-secondary {
-    @apply bg-calm-800 text-calm-200 hover:bg-calm-700;
+    @apply bg-neutral-800 text-neutral-200 hover:bg-neutral-700;
   }
   
   .calm-input {
-    @apply w-full px-4 py-3 rounded-xl border border-calm-200 bg-white
-           focus:border-calm-400 focus:ring-2 focus:ring-calm-100 
-           placeholder:text-calm-400 transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-xl border border-gray-200 bg-white
+           focus:border-gray-400 focus:ring-2 focus:ring-gray-100 
+           placeholder:text-gray-400 transition-all duration-200;
   }
   
   .dark .calm-input {
-    @apply bg-calm-900 border-calm-700 text-white placeholder:text-calm-500
-           focus:border-calm-500 focus:ring-calm-800;
+    @apply bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500
+           focus:border-neutral-500 focus:ring-neutral-800;
   }
 }
