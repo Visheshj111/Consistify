@@ -1,11 +1,24 @@
 import OpenAI from 'openai';
 
+function getApiKey() {
+  // Accept both the intended env var and a common typo seen in some deployments.
+  const rawKey = process.env.OPENAI_API_KEY || process.env.OPENAL_API_KEY;
+  const apiKey = typeof rawKey === 'string' ? rawKey.trim() : '';
+  return apiKey;
+}
+
 // Initialize OpenAI client lazily to ensure env is loaded
 let openai = null;
 function getOpenAI() {
   if (!openai) {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      throw new Error(
+        'Missing API key. Set OPENAI_API_KEY (or OPENAL_API_KEY) in the environment.'
+      );
+    }
     openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
+      apiKey
     });
   }
   return openai;

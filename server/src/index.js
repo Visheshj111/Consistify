@@ -12,6 +12,9 @@ const __dirname = path.dirname(__filename);
 // Load .env from server root directory
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
+// Safe diagnostic (does not print the key)
+console.log('OpenAI API key configured:', Boolean((process.env.OPENAI_API_KEY || process.env.OPENAL_API_KEY || '').trim()));
+
 import authRoutes from './routes/auth.js';
 import goalRoutes from './routes/goals.js';
 import taskRoutes from './routes/tasks.js';
