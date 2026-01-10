@@ -171,13 +171,9 @@ export default function ActivityFeedPage() {
                     <p className="font-medium text-calm-700 truncate">{friend.name}</p>
                     <span className="text-xs px-2 py-0.5 bg-calm-200 text-calm-600 rounded-full">{friend.progressPercent}%</span>
                   </div>
-                  {friend.currentTask ? (
+                  {friend.currentSkill ? (
                     <p className="text-sm text-calm-500 truncate mt-0.5">
-                      📚 Day {friend.currentDay}: <span className="text-calm-600">{friend.currentTask}</span>
-                    </p>
-                  ) : friend.currentSkill ? (
-                    <p className="text-sm text-calm-400 truncate mt-0.5">
-                      Learning {friend.currentSkill}
+                      {friend.currentSkill} {friend.currentDay && <span className="text-calm-400">• Day {friend.currentDay}</span>}
                     </p>
                   ) : (
                     <p className="text-sm text-calm-400 mt-0.5">No active skill</p>

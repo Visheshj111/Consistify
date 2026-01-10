@@ -490,13 +490,9 @@ export default function DashboardPage() {
                     <p className="font-medium text-calm-700 truncate">{friend.name}</p>
                     <span className="text-xs text-calm-400">{friend.progressPercent}%</span>
                   </div>
-                  {friend.currentTask ? (
+                  {friend.currentSkill ? (
                     <p className="text-sm text-calm-500 truncate">
-                      📚 Day {friend.currentDay}: {friend.currentTask}
-                    </p>
-                  ) : friend.currentSkill ? (
-                    <p className="text-sm text-calm-400 truncate">
-                      Learning {friend.currentSkill}
+                      {friend.currentSkill} {friend.currentDay && <span className="text-calm-400">• Day {friend.currentDay}</span>}
                     </p>
                   ) : (
                     <p className="text-sm text-calm-400">No active skill</p>
