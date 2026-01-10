@@ -135,17 +135,21 @@ No markdown, no explanations, just the JSON array.`;
     return topics.map((item, index) => {
       const dayNumber = item.dayNumber || index + 1;
       const phase = phaseDistribution.find(p => dayNumber >= p.startDay && dayNumber <= p.endDay)?.name || 'Foundation';
+      const topic = item.topic || `Day ${dayNumber}`;
+      
+      // Generate learning resources based on topic
+      const resources = generateResources(topic, title);
       
       return {
         dayNumber,
-        title: item.topic || `Day ${dayNumber}`,
-        purpose: `Focus on ${item.topic || 'this topic'}`,
+        title: topic,
+        purpose: `Today's focus`,
         estimatedMinutes: item.estimatedMinutes || dailyMinutes,
         phase,
-        deliverables: [`Complete study session on ${item.topic || 'this topic'}`],
-        resources: [],
-        actionItems: [`Study ${item.topic || 'this topic'} (${dailyMinutes} min)`],
-        skillProgression: `Outcome: Completed ${item.topic || 'this topic'}`,
+        deliverables: [`Understand and practice ${topic}`],
+        resources,
+        actionItems: [`Study and practice (${dailyMinutes} min)`],
+        skillProgression: `Can apply ${topic}`,
         nodeType: dayNumber === 1 ? 'up' : (index % 2 === 0 ? 'up' : 'down')
       };
     });
@@ -359,6 +363,62 @@ function getSkillTopics(skillName, totalDays) {
     genericTopics.push(`${phase} - Session ${i}`);
   }
   return genericTopics;
+}
+
+// Generate learning resources for a topic
+function generateResources(topic, skillName) {
+  const resources = [];
+  const topicLower = topic.toLowerCase();
+  const skillLower = skillName.toLowerCase();
+  
+  // YouTube - Always helpful
+  resources.push({
+    type: 'video',
+    title: `${topic} - Tutorial`,
+    url: `https://www.youtube.com/results?search_query=${encodeURIComponent(skillName + ' ' + topic + ' tutorial')}`,
+    creator: 'YouTube'
+  });
+  
+  // Add skill-specific resources
+  if (skillLower.includes('python') || skillLower.includes('javascript') || skillLower.includes('react')) {
+    resources.push({
+      type: 'tutorial',
+      title: `${topic} - Interactive Tutorial`,
+      url: 'https://www.freecodecamp.org/',
+      creator: 'freeCodeCamp'
+    });
+    resources.push({
+      type: 'docs',
+      title: 'Official Documentation',
+      url: skillLower.includes('python') ? 'https://docs.python.org/' : 
+            skillLower.includes('react') ? 'https://react.dev/' : 'https://developer.mozilla.org/',
+      creator: 'Official Docs'
+    });
+  } else if (skillLower.includes('guitar') || skillLower.includes('piano') || skillLower.includes('singing')) {
+    resources.push({
+      type: 'tutorial',
+      title: 'Music lessons and exercises',
+      url: 'https://www.musictheory.net/',
+      creator: 'MusicTheory.net'
+    });
+  } else if (skillLower.includes('excel') || skillLower.includes('powerbi')) {
+    resources.push({
+      type: 'tutorial',
+      title: 'Step-by-step guide',
+      url: 'https://support.microsoft.com/',
+      creator: 'Microsoft'
+    });
+  } else {
+    // Generic helpful resources
+    resources.push({
+      type: 'article',
+      title: `Learn about ${topic}`,
+      url: `https://www.google.com/search?q=${encodeURIComponent(skillName + ' ' + topic + ' tutorial')}`,
+      creator: 'Web Search'
+    });
+  }
+  
+  return resources;
 }
 
 export default { generatePlan, checkTimelineAndSuggest };
