@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../store/authStore'
 import { 
   Bell, 
@@ -10,7 +10,9 @@ import {
   CheckCircle,
   Shield,
   Eye,
-  EyeOff
+  EyeOff,
+  Info,
+  X
 } from 'lucide-react'
 import api from '../utils/api'
 
@@ -23,6 +25,7 @@ export default function SettingsPage() {
   })
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [showPrivacyNote, setShowPrivacyNote] = useState(false)
 
   const handleToggle = (key) => {
     setSettings(prev => ({
@@ -96,9 +99,18 @@ export default function SettingsPage() {
                 <EyeOff className="w-5 h-5 text-calm-400 mt-0.5" />
               )}
               <div>
-                <p className="font-medium text-calm-700">Show in Activity Feed</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-calm-700">Show in Activity Feed</p>
+                  <button
+                    onClick={() => setShowPrivacyNote(!showPrivacyNote)}
+                    className="p-1 rounded-full hover:bg-calm-100 transition-colors"
+                    aria-label="More info"
+                  >
+                    <Info className="w-4 h-4 text-calm-400" />
+                  </button>
+                </div>
                 <p className="text-sm text-calm-500">
-                  Your progress will appear in the community feed (without specific details)
+                  Your task name and completion % will be shared with the community. You can opt out anytime.
                 </p>
               </div>
             </div>
@@ -116,12 +128,28 @@ export default function SettingsPage() {
             </button>
           </div>
 
-          <div className="p-4 bg-calm-50 rounded-xl">
-            <p className="text-sm text-calm-600">
-              <strong>Note:</strong> We never share your specific goals, task details, or any personal information. 
-              The activity feed only shows neutral messages like "User completed today's task."
-            </p>
-          </div>
+          <AnimatePresence>
+            {showPrivacyNote && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="p-4 bg-calm-50 rounded-xl relative"
+              >
+                <button
+                  onClick={() => setShowPrivacyNote(false)}
+                  className="absolute top-2 right-2 p-1 text-calm-400 hover:text-calm-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <p className="text-sm text-calm-600 pr-6">
+                  <strong>Privacy Note:</strong> We never share your personal information or email. 
+                  Only your name, current task title, and progress percentage are visible to friends and community members.
+                  You can disable this at any time.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
