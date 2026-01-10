@@ -173,14 +173,22 @@ router.post('/accept-friend/:userId', authenticateToken, async (req, res) => {
   }
 });
 
-// Get friends list with their current skills
+// Get friends list with their current skills and tasks
 router.get('/friends', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate('friends', 'name picture');
     
     const friendsWithSkills = await Promise.all(
       (user.friends || []).map(async (friend) => {
-        const goals = await Goal.find({ userId: friend._id }).select('title type');
+        // Get their active goal
+        const activeGoal = await Goal.findOne({ userId: friend._id, isActive: true, isCompleted: false }).select('title type');
+        
+        // Get their current pending task (today's task)
+        let currentTask = null;
+        if (activeGoal) {
+          currentTask = await Task.findOne({ userId: friend._id, goalId: activeGoal._id, status: 'pending' }).sort({ dayNumber: 1 }).select('title dayNumber');
+        }
+        
         const completedTasks = await Task.countDocuments({ userId: friend._id, status: 'completed' });
         const totalTasks = await Task.countDocuments({ userId: friend._id });
         
@@ -188,7 +196,9 @@ router.get('/friends', authenticateToken, async (req, res) => {
           id: friend._id,
           name: friend.name,
           picture: friend.picture,
-          skills: goals.map(g => g.title),
+          currentSkill: activeGoal?.title || null,
+          currentTask: currentTask?.title || null,
+          currentDay: currentTask?.dayNumber || null,
           progressPercent: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
         };
       })

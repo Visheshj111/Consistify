@@ -13,10 +13,10 @@ export default function Layout() {
   }
 
   const navItems = [
+    { to: '/activity', icon: Users, label: 'Community' },
     { to: '/', icon: Home, label: 'Today' },
     { to: '/skills', icon: BookOpen, label: 'My Skills' },
     { to: '/roadmap', icon: Map, label: 'Roadmap' },
-    { to: '/activity', icon: Users, label: 'Community' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ]
 

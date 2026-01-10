@@ -152,24 +152,38 @@ export default function ActivityFeedPage() {
       {friends.length > 0 && (
         <div className="calm-card">
           <h2 className="font-semibold text-calm-700 mb-3">Your Friends</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="space-y-3">
             {friends.map((friend) => (
               <button
                 key={friend.id}
                 onClick={() => setSelectedUserId(friend.id)}
-                className="flex items-center gap-2 p-3 rounded-xl bg-calm-50 hover:bg-calm-100 transition-colors text-left"
+                className="w-full flex items-center gap-3 p-3 rounded-xl bg-calm-50 hover:bg-calm-100 transition-colors text-left"
               >
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sage-200 to-sky-200 flex items-center justify-center overflow-hidden">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sage-300 to-sky-300 flex items-center justify-center overflow-hidden flex-shrink-0">
                   {friend.picture ? (
                     <img src={friend.picture} alt={friend.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-sm font-bold text-calm-600">{friend.name?.charAt(0)}</span>
+                    <span className="text-lg font-bold text-white">{friend.name?.charAt(0)}</span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-calm-700 truncate">{friend.name}</p>
-                  <p className="text-xs text-calm-400">{friend.progressPercent}% done</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-calm-700 truncate">{friend.name}</p>
+                    <span className="text-xs px-2 py-0.5 bg-calm-200 text-calm-600 rounded-full">{friend.progressPercent}%</span>
+                  </div>
+                  {friend.currentTask ? (
+                    <p className="text-sm text-calm-500 truncate mt-0.5">
+                      📚 Day {friend.currentDay}: <span className="text-calm-600">{friend.currentTask}</span>
+                    </p>
+                  ) : friend.currentSkill ? (
+                    <p className="text-sm text-calm-400 truncate mt-0.5">
+                      Learning {friend.currentSkill}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-calm-400 mt-0.5">No active skill</p>
+                  )}
                 </div>
+                <ChevronRight className="w-5 h-5 text-calm-300 flex-shrink-0" />
               </button>
             ))}
           </div>
