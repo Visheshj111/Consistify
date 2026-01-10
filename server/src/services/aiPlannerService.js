@@ -53,52 +53,59 @@ export async function generatePlan(goal) {
   // Calculate phase distribution based on total days
   const phaseDistribution = calculatePhases(totalDays);
   
-  const systemPrompt = `You are an expert learning curriculum designer with deep knowledge of every skill domain.
+  const systemPrompt = `You are an expert learning curriculum designer creating calm, achievable daily topics.
 
-Your job: Generate a day-by-day topic progression for ANY skill the user wants to learn.
+CORE PRINCIPLES:
+1. One focused topic per day - no overwhelm
+2. Topics build progressively from simple → intermediate → advanced
+3. Language is calm and encouraging, never pressuring
+4. Respect the user's pace - if they have fewer days, keep topics broad; more days = granular detail
 
-RULES:
-1. Each day = ONE specific topic/concept to focus on
-2. Topics must build on each other logically
-3. Progress from fundamentals → intermediate → advanced
-4. Topics must be SPECIFIC, not vague (❌ "Basics" ✅ "Breathing techniques and diaphragm control")
-5. Use your knowledge to create the OPTIMAL learning path for that specific skill
+OUTPUT REQUIREMENTS:
+- Each day = ONE specific, focused topic
+- Topics must be concrete, not vague (❌ "Basics" ✅ "Variables and Data Types")
+- Progression must feel natural and achievable
+- No anxiety-inducing language, no rush, no pressure
 
 EXAMPLES:
-- Singing: Day 1: Breathing & Posture, Day 2: Vocal Warmups & Scales, Day 3: Pitch Control...
-- Python: Day 1: Variables & Data Types, Day 2: Conditionals & Loops, Day 3: Functions...
-- Guitar: Day 1: Parts of Guitar & Tuning, Day 2: Basic Chords (G, C, D), Day 3: Strumming Patterns...
-- Drawing: Day 1: Basic Shapes & Lines, Day 2: Shading Techniques, Day 3: Perspective Basics...
+- Singing (6 days): Day 1: Breathing and Posture, Day 2: Vocal Warmups, Day 3: Pitch Control...
+- Python (30 days): Day 1: Variables and Data Types, Day 2: If Statements, Day 3: Loops...
+- Guitar (7 days): Day 1: Tuning and Basic Chords, Day 2: Chord Transitions, Day 3: Strumming Patterns...
 
-FORBIDDEN: Motivational language, vague terms, repetition across days.`;  
+FORBIDDEN: "Master", "Cram", "Intensive", "Speed through", competitive language, guilt-inducing terms.`;  
 
-  const userPrompt = `Create a ${totalDays}-day topic progression for: "${title}"${description ? ` - ${description}` : ''}
+  const userPrompt = `Create a ${totalDays}-day learning journey for: "${title}"${description ? ` - ${description}` : ''}
 
-CRITICAL: Generate ${totalDays} UNIQUE topics, one per day.
-- Each topic should be specific and focused
-- Topics must progress logically (beginner → intermediate → advanced)
-- NO repetition across days
-- Use your knowledge of "${title}" to create the optimal learning sequence
+REQUIREMENTS:
+- Generate ${totalDays} unique daily topics
+- Each topic should be specific and focused on ONE concept
+- Topics progress naturally: beginner → intermediate → advanced
+- ${totalDays <= 7 ? 'Keep topics broad since time is limited - cover essentials only' : totalDays <= 14 ? 'Balance breadth and depth - core concepts with some practice' : 'Break topics into granular detail - comprehensive coverage'}
+- Language should be calm and achievable, never overwhelming
+- Daily time available: ${dailyMinutes} minutes
 
-Time available per day: ${dailyMinutes} minutes
+PACING GUIDE:
+${totalDays <= 7 ? '- Days 1-2: Absolute fundamentals\n- Days 3-5: Core techniques\n- Days 6-7: First application' : 
+  totalDays <= 14 ? '- Days 1-3: Foundations\n- Days 4-10: Core skills and practice\n- Days 11-14: Application and projects' :
+  '- First 20%: Foundations and setup\n- Middle 50%: Core techniques with progressive complexity\n- Final 30%: Application, projects, and mastery'}
 
-Return ONLY a valid JSON array with this simple structure:
+Return ONLY a valid JSON array:
 
 [
   {
     "dayNumber": 1,
-    "topic": "Specific topic name (e.g., 'Breathing Techniques and Posture')",
+    "topic": "Specific topic name (calm, achievable focus)",
     "estimatedMinutes": ${dailyMinutes}
   },
   {
     "dayNumber": 2,
-    "topic": "Next specific topic",
+    "topic": "Next logical topic",
     "estimatedMinutes": ${dailyMinutes}
   }
-  // ... continue for all ${totalDays} days
+  // ... for all ${totalDays} days
 ]
 
-No markdown, no code blocks, no explanation. Just the JSON array.`;
+No markdown, no explanations, just the JSON array.`;
 
   try {
     console.log('🤖 Calling OpenAI to generate topics...');
