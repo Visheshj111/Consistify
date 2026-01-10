@@ -53,195 +53,52 @@ export async function generatePlan(goal) {
   // Calculate phase distribution based on total days
   const phaseDistribution = calculatePhases(totalDays);
   
-  const systemPrompt = `You are creating a command-based execution roadmap. Every output must be a VERIFIABLE ACTION, not an explanation of knowledge.
+  const systemPrompt = `You are an expert learning curriculum designer with deep knowledge of every skill domain.
 
-COMMAND vs EXPLANATION:
-❌ "Learn variables" → ✅ "Create variables.py, declare 5 variables, print their types"
-❌ "Understand loops" → ✅ "Write a for loop that prints numbers 1-100"
-❌ "Build confidence with CSS" → ✅ "Build a navigation bar with 5 links using CSS flexbox"
+Your job: Generate a day-by-day topic progression for ANY skill the user wants to learn.
 
-OUTPUT SCHEMA RULES:
+RULES:
+1. Each day = ONE specific topic/concept to focus on
+2. Topics must build on each other logically
+3. Progress from fundamentals → intermediate → advanced
+4. Topics must be SPECIFIC, not vague (❌ "Basics" ✅ "Breathing techniques and diaphragm control")
+5. Use your knowledge to create the OPTIMAL learning path for that specific skill
 
-1. PURPOSE field (NOT "description")
-   - Must explain TECHNICAL DEPENDENCY, not learning outcomes
-   - ❌ "This builds understanding for later" 
-   - ✅ "These syntax patterns are required for loops in Day 5"
-   - ❌ "Strengthens foundation"
-   - ✅ "File I/O is prerequisite for the data parser project in Phase 3"
+EXAMPLES:
+- Singing: Day 1: Breathing & Posture, Day 2: Vocal Warmups & Scales, Day 3: Pitch Control...
+- Python: Day 1: Variables & Data Types, Day 2: Conditionals & Loops, Day 3: Functions...
+- Guitar: Day 1: Parts of Guitar & Tuning, Day 2: Basic Chords (G, C, D), Day 3: Strumming Patterns...
+- Drawing: Day 1: Basic Shapes & Lines, Day 2: Shading Techniques, Day 3: Perspective Basics...
 
-2. DELIVERABLES field (NOT "whatToLearn")
-   - Must be VERIFIABLE OUTPUTS only
-   - Each item = a thing that exists after completion
-   - ❌ "Understanding of variables"
-   - ✅ "A Python file with 10 variable declarations"
-   - ❌ "Knowledge of Git basics"
-   - ✅ "A GitHub repo with 3 commits pushed"
+FORBIDDEN: Motivational language, vague terms, repetition across days.`;  
 
-3. ACTION ITEMS - STRICTEST RULES:
-   Every action must contain:
-   - A VERB (${type === 'learning' ? 'watch, read, write, code, solve, build, create' : type === 'health' ? 'perform, hold, repeat, track, execute' : 'design, implement, deploy, test'})
-   - An OBJECT (what you're acting on)
-   - A CONSTRAINT (time, quantity, or completion criteria)
-   
-   ❌ "Practice Python (15 min)" - no object, no constraint
-   ✅ "Write 3 Python functions that calculate area of circle, square, triangle (15 min)"
-   
-   ❌ "Complete exercises" - which exercises?
-   ✅ "Complete exercises 1-20 on codecademy.com/python (25 min)"
+  const userPrompt = `Create a ${totalDays}-day topic progression for: "${title}"${description ? ` - ${description}` : ''}
 
-4. SKILL PROGRESSION
-   - Format: "Outcome: Can [verb] [object] [constraint]"
-   - Must be testable
-   - ❌ "Better understanding of functions"
-   - ✅ "Can write functions with parameters and return values"
+CRITICAL: Generate ${totalDays} UNIQUE topics, one per day.
+- Each topic should be specific and focused
+- Topics must progress logically (beginner → intermediate → advanced)
+- NO repetition across days
+- Use your knowledge of "${title}" to create the optimal learning sequence
 
-FORBIDDEN PHRASES (motivation AND abstraction):
-- Motivational: "Great job", "Keep going", "You've got this", "Stay consistent"
-- Abstract: "Strengthen understanding", "Build skills", "Develop knowledge", "Gain familiarity", "Core concepts", "Build foundation"
-- Vague verbs: "Work on", "Continue", "Practice" (without specifics), "Review" (without scope)
+Time available per day: ${dailyMinutes} minutes
 
-RESOURCES: Same quality standard (real URLs, real creators)
-- YouTube: Traversy Media, freeCodeCamp, Corey Schafer, The Net Ninja, Fireship
-- Docs: MDN, Python.org, official documentation
-- Interactive: freeCodeCamp, Codecademy, LeetCode, HackerRank
+Return ONLY a valid JSON array with this simple structure:
 
-TONE: Command-line interface. Not a teacher, not a coach. An executor.`;  
+[
+  {
+    "dayNumber": 1,
+    "topic": "Specific topic name (e.g., 'Breathing Techniques and Posture')",
+    "estimatedMinutes": ${dailyMinutes}
+  },
+  {
+    "dayNumber": 2,
+    "topic": "Next specific topic",
+    "estimatedMinutes": ${dailyMinutes}
+  }
+  // ... continue for all ${totalDays} days
+]
 
-  const userPrompt = `Create a ${totalDays}-day learning roadmap for: "${title}"${description ? ` - ${description}` : ''}
-
-CRITICAL: EVERY DAY MUST BE DIFFERENT!
-- Day 1 ≠ Day 2 ≠ Day 3 ≠ ... ≠ Day ${totalDays}
-- Each day introduces NEW concepts or builds on previous days
-- NO REPETITION of the same tasks across multiple days
-- Progress must be VISIBLE day-to-day
-
-CONSTRAINTS:
-- Daily time budget: ${dailyMinutes} minutes
-- Total days: ${totalDays}
-
-PHASE STRUCTURE:
-${phaseDistribution.map(p => `${p.name} (Days ${p.startDay}-${p.endDay}): ${p.focus}`).join('\n')}
-
-PROGRESSION REQUIREMENTS:
-- Days 1-${Math.ceil(totalDays * 0.3)}: Fundamentals (breathing, posture, vocal warmups, basic techniques)
-- Days ${Math.ceil(totalDays * 0.3) + 1}-${Math.ceil(totalDays * 0.6)}: Technique building (scales, pitch control, tone quality)
-- Days ${Math.ceil(totalDays * 0.6) + 1}-${totalDays}: Application (singing actual songs, performance, recording)
-
-For each day, provide a JSON object with:
-
-{
-  "dayNumber": <number>,
-  "phase": "<current phase name>",
-  "title": "<specific topic/skill - NOT 'Day X: Topic', just the topic>",
-  "purpose": "<technical reason this day exists - explain dependency or prerequisite relationship>",
-  "deliverables": [
-    "<verifiable output 1 - must be a thing that exists after completion>",
-    "<verifiable output 2>",
-    "<verifiable output 3>"
-  ],
-  "resources": [
-    {
-      "type": "video|docs|tutorial|article",
-      "title": "<exact title>",
-      "url": "<real URL>",
-      "creator": "<creator name>"
-    }
-  ],
-  "actionItems": [
-    "<VERB + OBJECT + CONSTRAINT> (X min)",
-    "<VERB + OBJECT + CONSTRAINT> (X min)"
-  ],
-  "skillProgression": "Outcome: Can <verb> <object> <constraint>",
-  "nodeType": "up|down|neutral",
-  "estimatedMinutes": ${dailyMinutes}
-}
-
-NodeType definitions:
-- "up": New concept introduction
-- "down": Practice/repetition of existing concepts  
-- "neutral": Consolidation or review
-
-EXAMPLE for a "Learn Python" goal, Day 2:
-{
-  "dayNumber": 2,
-  "phase": "Phase 1: Foundation",
-  "title": "Variables, Data Types, and Basic Operations",
-  "purpose": "Variable manipulation and type conversion are used in every subsequent exercise, including the calculator project in Day 7.",
-  "deliverables": [
-    "A Python file named variables.py with 10 variable declarations (strings, ints, floats, bools)",
-    "A temperature converter program (celsius_to_fahrenheit.py) that accepts input",
-    "Completed W3Schools Python Variables exercises 1-8 (screenshots or code)"
-  ],
-  "resources": [
-    {
-      "type": "video",
-      "title": "Python Variables and Data Types - Complete Guide",
-      "url": "https://www.youtube.com/watch?v=Z1Yd7upQsXY",
-      "creator": "Corey Schafer"
-    },
-    {
-      "type": "docs",
-      "title": "Python Built-in Types Documentation",
-      "url": "https://docs.python.org/3/library/stdtypes.html",
-      "creator": "Python.org"
-    },
-    {
-      "type": "tutorial",
-      "title": "Python Variables Tutorial",
-      "url": "https://www.w3schools.com/python/python_variables.asp",
-      "creator": "W3Schools"
-    }
-  ],
-  "actionItems": [
-    "Watch Corey Schafer's 'Variables and Data Types' video, pause and replicate each example in VS Code (20 min)",
-    "Create variables.py: declare 10 variables of different types, print each with type() function (8 min)",
-    "Read Python.org Built-in Types docs sections 4.1-4.3, test each operator in interactive shell (12 min)",
-    "Write celsius_to_fahrenheit.py: accept Celsius input, convert to Fahrenheit using formula, print result (10 min)",
-    "Complete exercises 1-8 at w3schools.com/python/python_variables.asp (10 min)"
-  ],
-  "skillProgression": "Outcome: Can declare variables of any type, perform arithmetic operations, and convert between types using int(), str(), float()",
-  "nodeType": "up",
-  "estimatedMinutes": 60
-}
-
-EXAMPLE for "Game Development in Unreal Engine", Day 1:
-{
-  "dayNumber": 1,
-  "phase": "Phase 1: Foundation",
-  "title": "Install Unreal Engine and Create First Level",
-  "purpose": "The Unreal Engine installation and a working project are required for all blueprints, materials, and level design in subsequent days.",
-  "deliverables": [
-    "Unreal Engine 5.1 installed on your system",
-    "A Third Person template project named 'MyFirstGame'",
-    "A level containing 5 placed objects (cubes, spheres, point lights) arranged in space"
-  ],
-  "resources": [
-    {
-      "type": "video",
-      "title": "Unreal Engine 5 Beginner Tutorial - Getting Started",
-      "url": "https://www.youtube.com/watch?v=gQmiqmxJMtA",
-      "creator": "Unreal Sensei"
-    },
-    {
-      "type": "docs",
-      "title": "Installing Unreal Engine",
-      "url": "https://docs.unrealengine.com/5.0/en-US/installing-unreal-engine/",
-      "creator": "Epic Games"
-    }
-  ],
-  "actionItems": [
-    "Download Epic Games Launcher from epicgames.com, install, create Epic account (10 min)",
-    "Install Unreal Engine 5.1 through Epic Launcher Library tab (15 min)",
-    "Watch Unreal Sensei's getting started video, pause at each UI section (25 min)",
-    "Create new project: Third Person template, name it 'MyFirstGame', save to Documents (5 min)",
-    "Place 3 cubes, 1 sphere, 1 point light in the level using Place Actors panel, move each to different positions (5 min)"
-  ],
-  "skillProgression": "Outcome: Can launch Unreal Engine, create a project, and place/manipulate actors in a level",
-  "nodeType": "up",
-  "estimatedMinutes": 60
-}
-
-Return ONLY a valid JSON array with exactly ${totalDays} day objects. No markdown formatting, no code blocks, no explanation text.`;
+No markdown, no code blocks, no explanation. Just the JSON array.`;
 
   try {
     const response = await getOpenAI().chat.completions.create({
@@ -250,72 +107,32 @@ Return ONLY a valid JSON array with exactly ${totalDays} day objects. No markdow
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
-      temperature: 0.4,
-      max_tokens: 12000
+      temperature: 0.7,
+      max_tokens: 3000
     });
 
     const content = response.choices[0].message.content;
     
     // Parse the JSON response
     const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
-    const tasks = JSON.parse(cleanContent);
+    const topics = JSON.parse(cleanContent);
     
-    // Validate and clean all fields
-    return tasks.map((task, index) => {
-      const dayNumber = task.dayNumber || index + 1;
-      const phase = task.phase || phaseDistribution.find(p => dayNumber >= p.startDay && dayNumber <= p.endDay)?.name || 'Foundation';
-      
-      // Clean purpose (technical dependency only)
-      const cleanText = (text) => stripAbstractLanguage(stripMotivationalLanguage(text));
-      
-      // Clean and validate action items
-      const actionItems = (task.actionItems || [])
-        .map(item => typeof item === 'string' ? item : item.text || '')
-        .filter(item => item.length > 0)
-        .map(item => {
-          // Ensure time allocation exists
-          if (!item.match(/\(\d+\s*min\)/i)) {
-            const estimatedTime = Math.floor(dailyMinutes / 4);
-            return `${item} (${estimatedTime} min)`;
-          }
-          return item;
-        });
-      
-      // Ensure minimum action items
-      while (actionItems.length < 3) {
-        const topicName = task.title || 'this session';
-        actionItems.push(`Complete practice exercises for ${topicName} (${Math.floor(dailyMinutes / 4)} min)`);
-      }
-      
-      // Clean and validate resources
-      const resources = (task.resources || []).map(r => ({
-        type: r.type || 'docs',
-        title: r.title || 'Learning Resource',
-        url: r.url || '',
-        creator: r.creator || 'Unknown'
-      })).filter(r => r.url && r.url.startsWith('http'));
-      
-      // Clean and validate deliverables (verifiable outputs)
-      const deliverables = (task.deliverables || [])
-        .filter(item => item && typeof item === 'string' && item.length > 0)
-        .map(item => cleanText(item));
-      
-      // Ensure minimum deliverables
-      while (deliverables.length < 2) {
-        deliverables.push(`Completed exercises for ${task.title || 'this session'}`);
-      }
+    // Convert simple topics to full task objects
+    return topics.map((item, index) => {
+      const dayNumber = item.dayNumber || index + 1;
+      const phase = phaseDistribution.find(p => dayNumber >= p.startDay && dayNumber <= p.endDay)?.name || 'Foundation';
       
       return {
         dayNumber,
-        title: cleanText(task.title || `Session ${dayNumber}`),
-        purpose: cleanText(task.purpose || task.description || `Technical foundation for subsequent days.`),
-        estimatedMinutes: task.estimatedMinutes || dailyMinutes,
+        title: item.topic || `Day ${dayNumber}`,
+        purpose: `Focus on ${item.topic || 'this topic'}`,
+        estimatedMinutes: item.estimatedMinutes || dailyMinutes,
         phase,
-        deliverables,
-        resources,
-        actionItems: actionItems.map(item => cleanText(item)),
-        skillProgression: cleanText(task.skillProgression || `Outcome: Completed day ${dayNumber} objectives`),
-        nodeType: task.nodeType || (dayNumber === 1 ? 'up' : index % 2 === 0 ? 'up' : 'down')
+        deliverables: [`Complete study session on ${item.topic || 'this topic'}`],
+        resources: [],
+        actionItems: [`Study ${item.topic || 'this topic'} (${dailyMinutes} min)`],
+        skillProgression: `Outcome: Completed ${item.topic || 'this topic'}`,
+        nodeType: dayNumber === 1 ? 'up' : (index % 2 === 0 ? 'up' : 'down')
       };
     });
   } catch (error) {
