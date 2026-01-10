@@ -101,6 +101,10 @@ Return ONLY a valid JSON array with this simple structure:
 No markdown, no code blocks, no explanation. Just the JSON array.`;
 
   try {
+    console.log('🤖 Calling OpenAI to generate topics...');
+    console.log('Goal:', title);
+    console.log('Days:', totalDays);
+    
     const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [
@@ -112,10 +116,13 @@ No markdown, no code blocks, no explanation. Just the JSON array.`;
     });
 
     const content = response.choices[0].message.content;
+    console.log('✅ OpenAI Response received');
+    console.log('Response preview:', content.substring(0, 200));
     
     // Parse the JSON response
     const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
     const topics = JSON.parse(cleanContent);
+    console.log('✅ Parsed', topics.length, 'topics');
     
     // Convert simple topics to full task objects
     return topics.map((item, index) => {
@@ -136,7 +143,9 @@ No markdown, no code blocks, no explanation. Just the JSON array.`;
       };
     });
   } catch (error) {
-    console.error('AI planning error:', error);
+    console.error('❌ AI planning error:', error.message);
+    console.error('Full error:', error);
+    console.log('⚠️ Falling back to generic plan');
     return generateFallbackPlan(goal);
   }
 }
