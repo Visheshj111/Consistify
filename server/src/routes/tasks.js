@@ -113,13 +113,21 @@ router.patch('/:id/complete', authenticateToken, async (req, res) => {
 
     await goal.save();
 
-    // Create activity entry
+    // Calculate progress percentage
+    const totalTasks = await Task.countDocuments({ goalId: goal._id });
+    const completedTasks = await Task.countDocuments({ goalId: goal._id, status: 'completed' });
+    const progressPercent = Math.round((completedTasks / totalTasks) * 100);
+
+    // Create activity entry with task details
     if (req.user.showInActivityFeed) {
       await Activity.create({
         userId: req.user._id,
         goalId: goal._id,
         type: 'completed',
-        message: `${req.user.name} completed today's task`,
+        message: `${req.user.name} completed Day ${task.dayNumber}: ${task.topic}`,
+        taskTitle: task.topic,
+        skillName: goal.title,
+        progressPercent,
         isPublic: true
       });
     }

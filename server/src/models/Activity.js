@@ -19,6 +19,15 @@ const activitySchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  taskTitle: {
+    type: String
+  },
+  skillName: {
+    type: String
+  },
+  progressPercent: {
+    type: Number
+  },
   isPublic: {
     type: Boolean,
     default: true
