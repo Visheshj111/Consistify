@@ -109,12 +109,23 @@ TONE: Command-line interface. Not a teacher, not a coach. An executor.`;
 
   const userPrompt = `Create a ${totalDays}-day learning roadmap for: "${title}"${description ? ` - ${description}` : ''}
 
+CRITICAL: EVERY DAY MUST BE DIFFERENT!
+- Day 1 ≠ Day 2 ≠ Day 3 ≠ ... ≠ Day ${totalDays}
+- Each day introduces NEW concepts or builds on previous days
+- NO REPETITION of the same tasks across multiple days
+- Progress must be VISIBLE day-to-day
+
 CONSTRAINTS:
 - Daily time budget: ${dailyMinutes} minutes
 - Total days: ${totalDays}
 
 PHASE STRUCTURE:
 ${phaseDistribution.map(p => `${p.name} (Days ${p.startDay}-${p.endDay}): ${p.focus}`).join('\n')}
+
+PROGRESSION REQUIREMENTS:
+- Days 1-${Math.ceil(totalDays * 0.3)}: Fundamentals (breathing, posture, vocal warmups, basic techniques)
+- Days ${Math.ceil(totalDays * 0.3) + 1}-${Math.ceil(totalDays * 0.6)}: Technique building (scales, pitch control, tone quality)
+- Days ${Math.ceil(totalDays * 0.6) + 1}-${totalDays}: Application (singing actual songs, performance, recording)
 
 For each day, provide a JSON object with:
 
