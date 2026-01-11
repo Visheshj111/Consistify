@@ -13,7 +13,8 @@ import {
   Loader2,
   Sparkles,
   Zap,
-  Info
+  Info,
+  ChevronDown
 } from 'lucide-react'
 
 export default function SkillsPage() {
@@ -22,10 +23,27 @@ export default function SkillsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isSwitching, setIsSwitching] = useState(null)
+  const [expandedDescriptions, setExpandedDescriptions] = useState({})
 
   useEffect(() => {
     fetchGoals()
   }, [fetchGoals])
+
+  const extractMainGoal = (title) => {
+    // Extract the main goal from sentences like "I want to lose Body Fat" -> "Lose Body Fat"
+    const match = title.match(/(?:i want to|i'm|i am|to|learn|build|complete)\s+(.+)/i)
+    if (match) {
+      return match[1].trim().replace(/^to\s+/i, '').trim()
+    }
+    return title
+  }
+
+  const toggleDescription = (goalId) => {
+    setExpandedDescriptions(prev => ({
+      ...prev,
+      [goalId]: !prev[goalId]
+    }))
+  }
 
   const handleSetActive = async (goalId) => {
     if (isSwitching) return
@@ -146,9 +164,33 @@ export default function SkillsPage() {
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-1 pr-16">{goal.title}</h3>
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-1 pr-16">
+                      {extractMainGoal(goal.title)}
+                    </h3>
+                    
+                    {/* Expandable Description */}
                     {goal.description && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">{goal.description}</p>
+                      <div className="mb-3">
+                        <button
+                          onClick={() => toggleDescription(goal._id)}
+                          className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors mb-1"
+                        >
+                          <ChevronDown 
+                            className={`w-3 h-3 transition-transform ${expandedDescriptions[goal._id] ? 'rotate-180' : ''}`}
+                          />
+                          Details
+                        </button>
+                        {expandedDescriptions[goal._id] && (
+                          <motion.p
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="text-sm text-gray-600 dark:text-gray-400 pt-1"
+                          >
+                            {goal.description}
+                          </motion.p>
+                        )}
+                      </div>
                     )}
 
                     {/* Stats */}
