@@ -12,6 +12,7 @@ export default function ActivityFeedPage() {
   const [selectedUserId, setSelectedUserId] = useState(null)
   const [friends, setFriends] = useState([])
   const [friendRequests, setFriendRequests] = useState([])
+  const [showAll24h, setShowAll24h] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -198,8 +199,9 @@ export default function ActivityFeedPage() {
               <p className="text-gray-400 dark:text-gray-500">No activity yet. Be the first to show up today!</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {activities.map((activity, index) => (
+            <div>
+              <div className="space-y-3">
+                {(showAll24h ? activities : activities.slice(0, 5)).map((activity, index) => (
                 <motion.div
                   key={activity._id}
                   initial={{ opacity: 0, x: -10 }}
@@ -265,6 +267,19 @@ export default function ActivityFeedPage() {
                   <ChevronRight className="w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0" />
                 </motion.div>
               ))}
+              </div>
+              
+              {/* View 24h activity button */}
+              {activities.length > 5 && !showAll24h && (
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  onClick={() => setShowAll24h(true)}
+                  className="w-full mt-4 py-2.5 px-4 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm font-medium"
+                >
+                  View last 24 hour activity ({activities.length - 5} more)
+                </motion.button>
+              )}
             </div>
           )}
         </div>
