@@ -1,4 +1,4 @@
-# Flow Goals
+# Persisto
 
 A calm, flow-focused goal achievement app that prioritizes mental wellbeing over hustle culture.
 
