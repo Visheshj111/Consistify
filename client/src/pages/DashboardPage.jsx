@@ -19,7 +19,8 @@ import {
   BookOpen,
   Play,
   FileText,
-  Target
+  Target,
+  Info
 } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -41,6 +42,7 @@ export default function DashboardPage() {
   const [completing, setCompleting] = useState(false)
   const [skipping, setSkipping] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(null)
+  const [showInfoTooltip, setShowInfoTooltip] = useState(false)
 
   useEffect(() => {
     fetchTodayTask()
@@ -145,6 +147,13 @@ export default function DashboardPage() {
 
   // Confirmation messages
   if (showConfirmation) {
+    const completedDay = activeGoal ? activeGoal.completedDays : 1
+    
+    const handleContinueNow = () => {
+      setShowConfirmation(null)
+      // The task has already been fetched after completion
+    }
+    
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -169,14 +178,54 @@ export default function DashboardPage() {
         </motion.div>
         <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-3">
           {showConfirmation === 'complete' 
-            ? "Day completed" 
+            ? `Day ${completedDay} completed!` 
             : "Task skipped"}
         </h2>
-        <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+        <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
           {showConfirmation === 'complete'
             ? "Tomorrow's task will be available at midnight."
             : "Task moved to tomorrow. No schedule adjustment needed."}
         </p>
+        
+        {/* Want to do it now option - only for complete */}
+        {showConfirmation === 'complete' && todayTask && (
+          <div className="mt-6">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <button
+                onClick={handleContinueNow}
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm underline underline-offset-2 transition-colors"
+              >
+                Want to do the next task now?
+              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setShowInfoTooltip(!showInfoTooltip)}
+                  className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <Info className="w-4 h-4" />
+                </button>
+                <AnimatePresence>
+                  {showInfoTooltip && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded-lg shadow-lg z-10"
+                    >
+                      <p className="leading-relaxed">
+                        <span className="font-semibold text-yellow-400">Not recommended.</span> People often get overwhelmed when trying to do too much. We suggest starting slow and sticking to the plan for sustainable progress.
+                      </p>
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800 dark:border-t-gray-700" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              (Not recommended)
+            </p>
+          </div>
+        )}
       </motion.div>
     )
   }
