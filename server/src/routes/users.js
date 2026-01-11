@@ -46,11 +46,21 @@ router.patch('/settings', authenticateToken, async (req, res) => {
 // Get user profile
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).populate('friends', 'name picture');
+    const user = await User.findById(req.user._id)
+      .populate('friends', 'name picture')
+      .populate('friendRequests.from', 'name picture');
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
+
+    // Transform friend requests to include sender info
+    const friendRequestsWithInfo = (user.friendRequests || []).map(req => ({
+      from: req.from._id || req.from,
+      name: req.from.name || 'Unknown',
+      picture: req.from.picture || null,
+      createdAt: req.createdAt
+    }));
 
     res.json({
       id: user._id,
@@ -62,7 +72,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
       reminderEnabled: user.reminderEnabled,
       timezone: user.timezone,
       friends: user.friends || [],
-      friendRequests: user.friendRequests || [],
+      friendRequests: friendRequestsWithInfo,
       createdAt: user.createdAt
     });
   } catch (error) {
@@ -80,11 +90,32 @@ router.get('/profile/:userId', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Get their public goals
-    const goals = await Goal.find({ userId: req.params.userId }).select('title type totalDays');
+    // Get their goals with progress
+    const goals = await Goal.find({ userId: req.params.userId });
     
-    // Calculate their progress
-    const completedTasks = await Task.countDocuments({ userId: req.params.userId, status: 'completed' });
+    // Calculate per-skill progress
+    const skillsWithProgress = await Promise.all(
+      goals.map(async (goal) => {
+        const completedTasks = await Task.countDocuments({ goalId: goal._id, status: 'completed' });
+        const totalTasks = await Task.countDocuments({ goalId: goal._id });
+        const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        
+        return {
+          id: goal._id,
+          title: goal.title,
+          type: goal.type,
+          totalDays: goal.totalDays,
+          completedTasks,
+          totalTasks,
+          progressPercent,
+          isActive: goal.isActive && !goal.isCompleted,
+          isCompleted: goal.isCompleted
+        };
+      })
+    );
+    
+    // Calculate overall progress
+    const totalCompletedTasks = await Task.countDocuments({ userId: req.params.userId, status: 'completed' });
     const totalTasks = await Task.countDocuments({ userId: req.params.userId });
     
     // Check if already friends
@@ -96,10 +127,10 @@ router.get('/profile/:userId', authenticateToken, async (req, res) => {
       id: user._id,
       name: user.name,
       picture: user.picture,
-      skills: goals.map(g => ({ title: g.title, type: g.type })),
-      completedTasks,
+      skills: skillsWithProgress,
+      completedTasks: totalCompletedTasks,
       totalTasks,
-      progressPercent: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+      progressPercent: totalTasks > 0 ? Math.round((totalCompletedTasks / totalTasks) * 100) : 0,
       isFriend,
       hasPendingRequest,
       createdAt: user.createdAt

@@ -100,21 +100,44 @@ export default function UserProfileModal({ userId, onClose }) {
                 </p>
               </div>
 
-              {/* Skills */}
+              {/* Skills with Progress */}
               {profile.skills && profile.skills.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 flex items-center justify-center gap-1">
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3 flex items-center justify-center gap-1">
                     <Target className="w-4 h-4" />
-                    Learning
+                    Skills
                   </h3>
-                  <div className="flex flex-wrap justify-center gap-2">
+                  <div className="space-y-3">
                     {profile.skills.map((skill, index) => (
-                      <span
+                      <div
                         key={index}
-                        className="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-sm"
+                        className="relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700"
                       >
-                        {skill.title}
-                      </span>
+                        {/* Progress background - darker portion for completed */}
+                        <div 
+                          className="absolute inset-0 bg-gray-200 dark:bg-gray-700 transition-all"
+                          style={{ width: `${skill.progressPercent || 0}%` }}
+                        />
+                        {/* Content */}
+                        <div className="relative p-3 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-800 dark:text-gray-100 text-sm">
+                              {skill.title}
+                            </span>
+                            {skill.isActive && (
+                              <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 text-xs rounded-full">
+                                Active
+                              </span>
+                            )}
+                            {skill.isCompleted && (
+                              <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                            )}
+                          </div>
+                          <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            {skill.progressPercent || 0}%
+                          </span>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>

@@ -131,12 +131,16 @@ export default function ActivityFeedPage() {
                 <div key={request.from} className="flex items-center justify-between py-2">
                   <button
                     onClick={() => setSelectedUserId(request.from)}
-                    className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+                    className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
                   >
-                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">?</span>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-300 to-gray-500 flex items-center justify-center overflow-hidden">
+                      {request.picture ? (
+                        <img src={request.picture} alt={request.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-sm font-bold text-white">{request.name?.charAt(0) || '?'}</span>
+                      )}
                     </div>
-                    <span>Someone wants to be friends</span>
+                    <span className="font-medium">{request.name || 'Someone'}</span>
                   </button>
                   <button
                     onClick={() => handleAcceptFriend(request.from)}
@@ -291,17 +295,21 @@ export default function ActivityFeedPage() {
                 <UserPlus className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                 Friend Requests
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {friendRequests.map((request) => (
                   <div key={request.from} className="flex items-center justify-between py-2">
                     <button
                       onClick={() => setSelectedUserId(request.from)}
-                      className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+                      className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
                     >
-                      <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">?</span>
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-300 to-gray-500 flex items-center justify-center overflow-hidden">
+                        {request.picture ? (
+                          <img src={request.picture} alt={request.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-sm font-bold text-white">{request.name?.charAt(0) || '?'}</span>
+                        )}
                       </div>
-                      <span className="text-sm">New request</span>
+                      <span className="text-sm font-medium truncate max-w-[100px]">{request.name || 'Someone'}</span>
                     </button>
                     <button
                       onClick={() => handleAcceptFriend(request.from)}
