@@ -187,20 +187,50 @@ router.post('/accept-friend/:userId', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'No friend request from this user' });
     }
 
-    // Add each other as friends
+    // Check if already friends (prevent duplicates)
+    if (currentUser.friends?.some(f => f.toString() === req.params.userId)) {
+      // Already friends, just remove the request
+      await User.findByIdAndUpdate(req.user._id, {
+        $pull: { friendRequests: { from: req.params.userId } }
+      });
+      return res.json({ message: 'Already friends' });
+    }
+
+    // Add each other as friends using $addToSet to prevent duplicates
     await User.findByIdAndUpdate(req.user._id, {
-      $push: { friends: req.params.userId },
+      $addToSet: { friends: req.params.userId },
       $pull: { friendRequests: { from: req.params.userId } }
     });
 
     await User.findByIdAndUpdate(req.params.userId, {
-      $push: { friends: req.user._id }
+      $addToSet: { friends: req.user._id },
+      // Also remove any pending request from current user to target user
+      $pull: { friendRequests: { from: req.user._id } }
     });
 
     res.json({ message: 'Friend added' });
   } catch (error) {
     console.error('Accept friend error:', error);
     res.status(500).json({ error: 'Failed to accept friend request' });
+  }
+});
+
+// Unfriend someone
+router.delete('/unfriend/:userId', authenticateToken, async (req, res) => {
+  try {
+    // Remove from both users' friends lists
+    await User.findByIdAndUpdate(req.user._id, {
+      $pull: { friends: req.params.userId }
+    });
+
+    await User.findByIdAndUpdate(req.params.userId, {
+      $pull: { friends: req.user._id }
+    });
+
+    res.json({ message: 'Unfriended successfully' });
+  } catch (error) {
+    console.error('Unfriend error:', error);
+    res.status(500).json({ error: 'Failed to unfriend' });
   }
 });
 

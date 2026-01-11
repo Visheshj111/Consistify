@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, UserPlus, Check, Clock, Target, Trophy, Loader2 } from 'lucide-react'
+import { X, UserPlus, Check, Clock, Target, Trophy, Loader2, UserMinus } from 'lucide-react'
 import api from '../utils/api'
 
 export default function UserProfileModal({ userId, onClose }) {
@@ -8,6 +8,7 @@ export default function UserProfileModal({ userId, onClose }) {
   const [isLoading, setIsLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [message, setMessage] = useState(null)
+  const [showUnfriendConfirm, setShowUnfriendConfirm] = useState(false)
 
   useEffect(() => {
     fetchProfile()
@@ -32,6 +33,20 @@ export default function UserProfileModal({ userId, onClose }) {
       setMessage('Friend request sent!')
     } catch (error) {
       setMessage(error.response?.data?.error || 'Failed to send request')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleUnfriend = async () => {
+    setActionLoading(true)
+    try {
+      await api.delete(`/users/unfriend/${userId}`)
+      setProfile(prev => ({ ...prev, isFriend: false }))
+      setMessage('Unfriended')
+      setShowUnfriendConfirm(false)
+    } catch (error) {
+      setMessage(error.response?.data?.error || 'Failed to unfriend')
     } finally {
       setActionLoading(false)
     }
@@ -155,9 +170,43 @@ export default function UserProfileModal({ userId, onClose }) {
               )}
 
               {profile.isFriend ? (
-                <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400">
-                  <Check className="w-5 h-5" />
-                  <span>Friends</span>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400">
+                    <Check className="w-5 h-5" />
+                    <span>Friends</span>
+                  </div>
+                  
+                  {!showUnfriendConfirm ? (
+                    <button
+                      onClick={() => setShowUnfriendConfirm(true)}
+                      className="text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                    >
+                      Unfriend
+                    </button>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={handleUnfriend}
+                        disabled={actionLoading}
+                        className="px-3 py-1 bg-red-500 text-white text-sm rounded-full hover:bg-red-600 transition-colors flex items-center gap-1"
+                      >
+                        {actionLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <>
+                            <UserMinus className="w-4 h-4" />
+                            Confirm
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setShowUnfriendConfirm(false)}
+                        className="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : profile.hasPendingRequest ? (
                 <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
