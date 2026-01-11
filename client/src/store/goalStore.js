@@ -54,6 +54,40 @@ export const useGoalStore = create((set, get) => ({
   createGoal: async (goalData) => {
     set({ isLoading: true, error: null })
     try {
+      // If inviting a friend, we need to create the goal first to get the AI plan,
+      // then send an invite instead of starting immediately
+      if (goalData.inviteFriendId) {
+        // First, create a temporary goal to generate the AI plan
+        const response = await api.post('/goals', {
+          type: goalData.type,
+          title: goalData.title,
+          description: goalData.description,
+          totalDays: goalData.totalDays,
+          dailyMinutes: goalData.dailyMinutes
+        })
+        
+        // Delete the temporary goal (we'll create proper shared goals when friend accepts)
+        const tempGoal = response.data.goal
+        await api.delete(`/goals/${tempGoal._id}`)
+        
+        // Send invite to friend with the generated plan
+        await api.post('/goals/invite', {
+          friendId: goalData.inviteFriendId,
+          goalData: {
+            type: goalData.type,
+            title: goalData.title,
+            description: goalData.description,
+            totalDays: goalData.totalDays,
+            dailyMinutes: goalData.dailyMinutes,
+            aiGeneratedPlan: tempGoal.aiGeneratedPlan
+          }
+        })
+        
+        set({ isLoading: false })
+        return { inviteSent: true, message: 'Invite sent to friend!' }
+      }
+      
+      // Regular goal creation (no friend invite)
       const response = await api.post('/goals', goalData)
       set((state) => ({ 
         goals: [response.data.goal, ...state.goals],

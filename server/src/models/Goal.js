@@ -55,6 +55,21 @@ const goalSchema = new mongoose.Schema({
   aiGeneratedPlan: {
     type: String // JSON string of the full plan
   },
+  // Shared goal fields
+  partnerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  partnerGoalId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Goal',
+    default: null
+  },
+  isSharedGoal: {
+    type: Boolean,
+    default: false
+  },
   createdAt: {
     type: Date,
     default: Date.now

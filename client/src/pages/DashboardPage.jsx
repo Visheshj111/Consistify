@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useGoalStore } from '../store/goalStore'
+import api from '../utils/api'
 import { 
   CheckCircle2, 
   XCircle, 
@@ -20,7 +21,10 @@ import {
   Play,
   FileText,
   Target,
-  Info
+  Info,
+  Users,
+  UserPlus,
+  X
 } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -43,10 +47,48 @@ export default function DashboardPage() {
   const [skipping, setSkipping] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(null)
   const [showInfoTooltip, setShowInfoTooltip] = useState(false)
+  
+  // Goal invites state
+  const [goalInvites, setGoalInvites] = useState([])
+  const [acceptingInvite, setAcceptingInvite] = useState(null)
 
   useEffect(() => {
     fetchTodayTask()
+    fetchGoalInvites()
   }, [fetchTodayTask])
+
+  const fetchGoalInvites = async () => {
+    try {
+      const res = await api.get('/goals/invites')
+      setGoalInvites(res.data)
+    } catch (error) {
+      console.log('Failed to fetch goal invites:', error)
+    }
+  }
+
+  const handleAcceptInvite = async (inviteId) => {
+    setAcceptingInvite(inviteId)
+    try {
+      await api.post(`/goals/accept-invite/${inviteId}`)
+      // Refresh data
+      await fetchGoalInvites()
+      await fetchTodayTask()
+    } catch (error) {
+      console.error('Failed to accept invite:', error)
+      alert('Failed to accept invite')
+    } finally {
+      setAcceptingInvite(null)
+    }
+  }
+
+  const handleDeclineInvite = async (inviteId) => {
+    try {
+      await api.delete(`/goals/decline-invite/${inviteId}`)
+      setGoalInvites(prev => prev.filter(inv => inv.id !== inviteId))
+    } catch (error) {
+      console.error('Failed to decline invite:', error)
+    }
+  }
 
   const getGreeting = () => {
     const hour = new Date().getHours()
@@ -259,6 +301,72 @@ export default function DashboardPage() {
           <span className="text-gray-300 dark:text-gray-600">•</span>
           <span className="text-gray-400 dark:text-gray-500">{format(new Date(), 'EEEE, MMMM d')}</span>
         </div>
+
+        {/* Goal Invites */}
+        {goalInvites.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-3"
+          >
+            {goalInvites.map((invite) => (
+              <div
+                key={invite.id}
+                className="calm-card bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200 dark:border-gray-700"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-gray-300 dark:ring-gray-600">
+                    {invite.from.picture ? (
+                      <img src={invite.from.picture} alt={invite.from.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-lg font-bold text-white">
+                        {invite.from.name?.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Users className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                      <span className="text-sm text-gray-500 dark:text-gray-400">Learning Invite</span>
+                    </div>
+                    <p className="font-medium text-gray-800 dark:text-gray-100 truncate">
+                      {invite.from.name} wants to learn <span className="font-bold">{invite.goalData.title}</span> with you!
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {invite.goalData.totalDays} days • {invite.goalData.dailyMinutes} min/day
+                    </p>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => handleDeclineInvite(invite.id)}
+                      className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                      title="Decline"
+                    >
+                      <X className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                    </button>
+                    <button
+                      onClick={() => handleAcceptInvite(invite.id)}
+                      disabled={acceptingInvite === invite.id}
+                      className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {acceptingInvite === invite.id ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Joining...
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-4 h-4" />
+                          Accept
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        )}
 
         {/* Goal Progress */}
         {activeGoal && (

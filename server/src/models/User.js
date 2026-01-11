@@ -42,6 +42,18 @@ const userSchema = new mongoose.Schema({
     from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     createdAt: { type: Date, default: Date.now }
   }],
+  goalInvites: [{
+    from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    goalData: {
+      type: { type: String },
+      title: String,
+      description: String,
+      totalDays: Number,
+      dailyMinutes: Number,
+      aiGeneratedPlan: String
+    },
+    createdAt: { type: Date, default: Date.now }
+  }],
   createdAt: {
     type: Date,
     default: Date.now

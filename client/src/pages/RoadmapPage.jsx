@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useGoalStore } from '../store/goalStore'
-import { CheckCircle2, Lock, Circle, Clock, ArrowLeft, X, Target, BookOpen, Play, FileText, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CheckCircle2, Lock, Circle, Clock, ArrowLeft, X, Target, BookOpen, Play, FileText, ExternalLink, ChevronLeft, ChevronRight, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import api from '../utils/api'
 
@@ -12,6 +12,10 @@ export default function RoadmapPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedTask, setSelectedTask] = useState(null)
   const scrollRef = useRef(null)
+  
+  // Partner progress state
+  const [partnerData, setPartnerData] = useState(null)
+  const [showPartnerView, setShowPartnerView] = useState(false)
 
   const getResourceIcon = (type) => {
     switch (type) {
@@ -28,15 +32,24 @@ export default function RoadmapPage() {
 
   const fetchAllTasks = async () => {
     try {
+      let goalData = activeGoal
       if (!activeGoal) {
         const goalRes = await api.get('/goals/active')
         if (!goalRes.data) return
-        
-        const tasksRes = await api.get(`/tasks/all/${goalRes.data._id}`)
-        setAllTasks(tasksRes.data)
-      } else {
-        const tasksRes = await api.get(`/tasks/all/${activeGoal.id || activeGoal._id}`)
-        setAllTasks(tasksRes.data)
+        goalData = goalRes.data
+      }
+      
+      const tasksRes = await api.get(`/tasks/all/${goalData.id || goalData._id}`)
+      setAllTasks(tasksRes.data)
+      
+      // Check if this is a shared goal and fetch partner progress
+      if (goalData.isSharedGoal && goalData.partnerId) {
+        try {
+          const partnerRes = await api.get(`/goals/${goalData.id || goalData._id}/partner-progress`)
+          setPartnerData(partnerRes.data)
+        } catch (err) {
+          console.log('Could not fetch partner progress:', err)
+        }
       }
     } catch (error) {
       console.error('Failed to fetch roadmap:', error)
@@ -79,18 +92,81 @@ export default function RoadmapPage() {
       className="space-y-6"
     >
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => navigate('/')}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">Your Roadmap</h1>
-          <p className="text-gray-500 dark:text-gray-400">{activeGoal?.title || 'Skill Journey'}</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">Your Roadmap</h1>
+            <p className="text-gray-500 dark:text-gray-400">{activeGoal?.title || 'Skill Journey'}</p>
+          </div>
         </div>
+        
+        {/* Partner toggle - only show for shared goals */}
+        {partnerData && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowPartnerView(false)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                !showPartnerView 
+                  ? 'bg-black dark:bg-white text-white dark:text-black' 
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              My Progress
+            </button>
+            <button
+              onClick={() => setShowPartnerView(true)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                showPartnerView 
+                  ? 'bg-black dark:bg-white text-white dark:text-black' 
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0">
+                {partnerData.partner?.picture ? (
+                  <img src={partnerData.partner.picture} alt={partnerData.partner.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-xs">
+                    {partnerData.partner?.name?.charAt(0)}
+                  </div>
+                )}
+              </div>
+              {partnerData.partner?.name}'s Progress
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Partner info banner - show when viewing partner */}
+      {showPartnerView && partnerData && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="calm-card bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 flex items-center gap-4"
+        >
+          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+            {partnerData.partner?.picture ? (
+              <img src={partnerData.partner.picture} alt={partnerData.partner.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-lg font-bold text-white">
+                {partnerData.partner?.name?.charAt(0)}
+              </div>
+            )}
+          </div>
+          <div className="flex-1">
+            <p className="font-medium text-gray-800 dark:text-gray-100">{partnerData.partner?.name}'s Journey</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Day {partnerData.partnerGoal?.currentDay} • {partnerData.partnerGoal?.completedDays} days completed
+            </p>
+          </div>
+          <Users className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+        </motion.div>
+      )}
 
       {/* Visual Flow Roadmap */}
       <div className="relative">
@@ -117,7 +193,7 @@ export default function RoadmapPage() {
           <div 
             className="relative"
             style={{ 
-              width: `${Math.max(allTasks.length * 140, 600)}px`,
+              width: `${Math.max((showPartnerView && partnerData ? partnerData.partnerTasks : allTasks).length * 140, 600)}px`,
               height: '220px'
             }}
           >
@@ -133,8 +209,9 @@ export default function RoadmapPage() {
                 </linearGradient>
               </defs>
               
-              {allTasks.map((task, index) => {
-                if (index === allTasks.length - 1) return null
+              {(showPartnerView && partnerData ? partnerData.partnerTasks : allTasks).map((task, index) => {
+                const displayTasks = showPartnerView && partnerData ? partnerData.partnerTasks : allTasks
+                if (index === displayTasks.length - 1) return null
                 
                 const x1 = 60 + index * 140
                 const y1 = getNodePosition(index)
@@ -148,7 +225,7 @@ export default function RoadmapPage() {
                 const cy2 = y2
                 
                 const isCompleted = task.status === 'completed'
-                const nextCompleted = allTasks[index + 1]?.status === 'completed'
+                const nextCompleted = displayTasks[index + 1]?.status === 'completed'
                 
                 return (
                   <path
@@ -164,11 +241,12 @@ export default function RoadmapPage() {
             </svg>
 
             {/* Day nodes */}
-            {allTasks.map((task, index) => {
+            {(showPartnerView && partnerData ? partnerData.partnerTasks : allTasks).map((task, index) => {
+              const displayTasks = showPartnerView && partnerData ? partnerData.partnerTasks : allTasks
               const isCompleted = task.status === 'completed'
               const isSkipped = task.status === 'skipped'
               const isPending = task.status === 'pending'
-              const isNext = isPending && (index === 0 || allTasks[index - 1]?.status === 'completed')
+              const isNext = isPending && (index === 0 || displayTasks[index - 1]?.status === 'completed')
               const isLocked = isPending && !isNext
               
               const x = 60 + index * 140
