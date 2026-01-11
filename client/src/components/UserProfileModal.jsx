@@ -78,7 +78,7 @@ export default function UserProfileModal({ userId, onClose }) {
 
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 text-gray-400 dark:text-gray-500 animate-spin" />
+              <div className="spinner-lg text-gray-400 dark:text-gray-500" />
             </div>
           ) : profile ? (
             <div className="text-center">

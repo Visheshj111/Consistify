@@ -78,9 +78,7 @@ export default function RoadmapPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-breathe">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-r from-gray-400 to-gray-500 opacity-60" />
-        </div>
+        <div className="spinner-lg text-gray-400 dark:text-gray-500" />
       </div>
     )
   }

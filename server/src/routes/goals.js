@@ -153,6 +153,30 @@ router.get('/active', authenticateToken, async (req, res) => {
   }
 });
 
+// Get pending goal invites (MUST be before /:id route)
+router.get('/invites', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+      .populate('goalInvites.from', 'name picture');
+    
+    const invites = (user.goalInvites || []).map(inv => ({
+      id: inv._id,
+      from: {
+        id: inv.from?._id,
+        name: inv.from?.name,
+        picture: inv.from?.picture
+      },
+      goalData: inv.goalData,
+      createdAt: inv.createdAt
+    }));
+
+    res.json(invites);
+  } catch (error) {
+    console.error('Get goal invites error:', error);
+    res.status(500).json({ error: 'Failed to fetch invites' });
+  }
+});
+
 // Get single goal
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
@@ -329,30 +353,6 @@ router.post('/invite', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Send goal invite error:', error);
     res.status(500).json({ error: 'Failed to send invite' });
-  }
-});
-
-// Get pending goal invites
-router.get('/invites', authenticateToken, async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id)
-      .populate('goalInvites.from', 'name picture');
-    
-    const invites = (user.goalInvites || []).map(inv => ({
-      id: inv._id,
-      from: {
-        id: inv.from._id,
-        name: inv.from.name,
-        picture: inv.from.picture
-      },
-      goalData: inv.goalData,
-      createdAt: inv.createdAt
-    }));
-
-    res.json(invites);
-  } catch (error) {
-    console.error('Get goal invites error:', error);
-    res.status(500).json({ error: 'Failed to fetch invites' });
   }
 });
 

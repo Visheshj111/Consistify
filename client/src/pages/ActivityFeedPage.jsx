@@ -63,7 +63,7 @@ export default function ActivityFeedPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 text-gray-400 dark:text-gray-500 animate-spin" />
+        <div className="spinner-lg text-gray-400 dark:text-gray-500" />
       </div>
     )
   }
