@@ -142,7 +142,7 @@ router.get('/active', authenticateToken, async (req, res) => {
       userId: req.user._id, 
       isActive: true,
       isCompleted: false 
-    });
+    }).populate('partnerId', 'name picture');
     
     if (!goal) {
       return res.status(404).json({ error: 'No active goal found' });
@@ -185,7 +185,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
     const goal = await Goal.findOne({ 
       _id: req.params.id, 
       userId: req.user._id 
-    });
+    }).populate('partnerId', 'name picture');
     
     if (!goal) {
       return res.status(404).json({ error: 'Goal not found' });
