@@ -74,7 +74,7 @@ export default function DashboardPage() {
     try {
       await completeTask(todayTask._id)
       setShowConfirmation('complete')
-      setTimeout(() => setShowConfirmation(null), 3000)
+      // Don't auto-hide - let user decide when to continue
     } catch (error) {
       console.error('Failed to complete task:', error)
     } finally {
