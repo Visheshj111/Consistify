@@ -125,7 +125,9 @@ router.post('/', authenticateToken, async (req, res) => {
 // Get all goals for user
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const goals = await Goal.find({ userId: req.user._id }).sort({ createdAt: -1 });
+    const goals = await Goal.find({ userId: req.user._id })
+      .populate('partnerId', 'name picture')
+      .sort({ createdAt: -1 });
     res.json(goals);
   } catch (error) {
     console.error('Get goals error:', error);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { format, formatDistanceToNow } from 'date-fns'
-import { Users, TrendingUp, Heart, Loader2, UserPlus, ChevronRight } from 'lucide-react'
+import { Users, TrendingUp, Heart, Loader2, UserPlus, ChevronRight, X } from 'lucide-react'
 import api from '../utils/api'
 import UserProfileModal from '../components/UserProfileModal'
 
@@ -13,6 +13,9 @@ export default function ActivityFeedPage() {
   const [friends, setFriends] = useState([])
   const [friendRequests, setFriendRequests] = useState([])
   const [showAll24h, setShowAll24h] = useState(false)
+  const [showCommunityModal, setShowCommunityModal] = useState(false)
+  const [communityMembers, setCommunityMembers] = useState([])
+  const [communityLoading, setCommunityLoading] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -44,6 +47,19 @@ export default function ActivityFeedPage() {
       fetchData()
     } catch (error) {
       console.error('Failed to accept friend:', error)
+    }
+  }
+
+  const handleViewCommunity = async () => {
+    setShowCommunityModal(true)
+    setCommunityLoading(true)
+    try {
+      const res = await api.get('/users/community/members')
+      setCommunityMembers(res.data)
+    } catch (error) {
+      console.error('Failed to fetch community members:', error)
+    } finally {
+      setCommunityLoading(false)
     }
   }
 
@@ -101,12 +117,12 @@ export default function ActivityFeedPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400">active today</p>
             </div>
             
-            <div className="calm-card text-center">
+            <div className="calm-card text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors" onClick={handleViewCommunity}>
               <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-3">
                 <Heart className="w-6 h-6 text-gray-600 dark:text-gray-400" />
               </div>
               <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">{stats.communitySize}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">in our community</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">View all members</p>
             </div>
           </div>
         )}
@@ -393,6 +409,82 @@ export default function ActivityFeedPage() {
           userId={selectedUserId}
           onClose={() => setSelectedUserId(null)}
         />
+      )}
+
+      {/* Community Members Modal */}
+      {showCommunityModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 dark:bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setShowCommunityModal(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <div>
+                <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">Community Members</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{communityMembers.length} people</p>
+              </div>
+              <button
+                onClick={() => setShowCommunityModal(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              </button>
+            </div>
+
+            {/* Members List */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-3">
+              {communityLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="spinner-lg text-gray-400 dark:text-gray-500" />
+                </div>
+              ) : communityMembers.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400">No community members found</p>
+                </div>
+              ) : (
+                communityMembers.map((member) => (
+                  <button
+                    key={member.id}
+                    onClick={() => {
+                      setSelectedUserId(member.id)
+                      setShowCommunityModal(false)
+                    }}
+                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {member.picture ? (
+                        <img src={member.picture} alt={member.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-lg font-bold text-white">{member.name?.charAt(0)}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-800 dark:text-gray-100">{member.name}</p>
+                      {member.currentSkill ? (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                          {member.currentSkill} • {member.progressPercent}%
+                        </p>
+                      ) : (
+                        <p className="text-sm text-gray-400 dark:text-gray-500">No active skill</p>
+                      )}
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 flex-shrink-0" />
+                  </button>
+                ))
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
       )}
     </motion.div>
   )

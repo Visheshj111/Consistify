@@ -14,7 +14,8 @@ import {
   Sparkles,
   Zap,
   Info,
-  ChevronDown
+  ChevronDown,
+  Users
 } from 'lucide-react'
 
 export default function SkillsPage() {
@@ -164,9 +165,19 @@ export default function SkillsPage() {
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-1 pr-16">
-                      {extractMainGoal(goal.title)}
-                    </h3>
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <h3 className="font-semibold text-gray-800 dark:text-gray-100">
+                        {extractMainGoal(goal.title)}
+                      </h3>
+                      {goal.isSharedGoal && goal.partnerId && (
+                        <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 rounded-full border border-blue-200 dark:border-blue-800/50">
+                          <Users className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                          <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                            {goal.partnerId.name}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                     
                     {/* Expandable Description */}
                     {goal.description && (

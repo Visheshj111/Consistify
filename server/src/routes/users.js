@@ -272,4 +272,46 @@ router.get('/friends', authenticateToken, async (req, res) => {
   }
 });
 
+// Get all community members (excluding self)
+router.get('/community/members', authenticateToken, async (req, res) => {
+  try {
+    const communityMembers = await User.find(
+      { 
+        _id: { $ne: req.user._id },
+        showInActivityFeed: true 
+      },
+      'name picture'
+    ).sort({ createdAt: -1 });
+
+    const membersWithSkills = await Promise.all(
+      communityMembers.map(async (member) => {
+        const activeGoal = await Goal.findOne({ userId: member._id, isActive: true, isCompleted: false }).select('title');
+        let currentTask = null;
+        
+        if (activeGoal) {
+          currentTask = await Task.findOne({ userId: member._id, goalId: activeGoal._id, status: 'pending' }).sort({ dayNumber: 1 }).select('title dayNumber');
+        }
+        
+        const completedTasks = await Task.countDocuments({ userId: member._id, status: 'completed' });
+        const totalTasks = await Task.countDocuments({ userId: member._id });
+        
+        return {
+          id: member._id,
+          name: member.name,
+          picture: member.picture,
+          currentSkill: activeGoal?.title || null,
+          currentTask: currentTask?.title || null,
+          currentDay: currentTask?.dayNumber || null,
+          progressPercent: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+        };
+      })
+    );
+
+    res.json(membersWithSkills);
+  } catch (error) {
+    console.error('Get community members error:', error);
+    res.status(500).json({ error: 'Failed to fetch community members' });
+  }
+});
+
 export default router;
